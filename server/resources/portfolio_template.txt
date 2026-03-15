@@ -1,0 +1,33 @@
+# My Stock Portfolio
+
+## Portfolio Overview
+Investor: Demo User
+Risk Profile: Moderate
+Investment Horizon: 3-5 years
+Total Invested: ₹5,00,000 (approx.)
+
+## Holdings
+
+| Stock         | Ticker        | Qty | Avg Buy Price (₹) | Sector              |
+|---------------|---------------|-----|--------------------|---------------------|
+| TCS           | TCS.NS        | 10  | 3500               | Information Technology |
+| HDFC Bank     | HDFCBANK.NS   | 25  | 1600               | Banking             |
+| Reliance Ind. | RELIANCE.NS   | 15  | 2400               | Energy / Conglomerate |
+| Infosys       | INFY.NS       | 20  | 1450               | Information Technology |
+| ITC           | ITC.NS        | 100 | 420                | FMCG                |
+| SBI           | SBIN.NS       | 50  | 600                | Banking (PSU)       |
+| Sun Pharma    | SUNPHARMA.NS  | 30  | 1100               | Pharmaceuticals     |
+
+## Notes
+- Primary goal: Long-term wealth creation
+- Rebalancing frequency: Every 6 months
+- Avoid sectors: Gambling, tobacco (already reviewing ITC position)
+- Watchlist: BAJFINANCE.NS, ADANIPORTS.NS, APOLLOHOSP.NS
+
+## Target Allocation
+- IT Sector: 30%
+- Banking: 25%
+- FMCG: 15%
+- Energy: 15%
+- Pharma: 10%
+- Others: 5%
