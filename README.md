@@ -547,7 +547,7 @@ brew install node
 ### Step 2 — Project Setup
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/finsight-mcp.git
+git clone https://github.com/Akash-47-tank/finsight-mcp.git
 cd finsight-mcp
 
 python3 -m venv venv
