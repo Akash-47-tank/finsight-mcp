@@ -9,9 +9,15 @@
 ![NSE](https://img.shields.io/badge/Market-NSE%20India-0066CC?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)
 
+<br/>
+
 **A production-style implementation of Anthropic's Model Context Protocol (MCP) that transforms a local LLM into an agentic financial research assistant for Indian NSE stocks — built 100% with free and open-source tools.**
 
-*Completed after finishing the [Anthropic Academy — Introduction to Model Context Protocol](https://anthropic.com) course*
+*Built after completing the [Anthropic Academy — Introduction to Model Context Protocol](https://anthropic.com) course*
+
+<br/>
+
+[🚀 Quick Start](#-setup-and-installation-macos-m1) · [📸 Screenshots](#-live-demo-screenshots) · [🏗️ Architecture](#%EF%B8%8F-architecture-and-flow-diagram) · [📚 What I Learned](#-what-i-learned)
 
 </div>
 
@@ -22,7 +28,7 @@
 - [What is This Project?](#-what-is-this-project)
 - [Live Demo Screenshots](#-live-demo-screenshots)
 - [What is MCP? My Understanding](#-what-is-mcp-my-understanding)
-- [Architecture and Flow Diagram](#-architecture-and-flow-diagram)
+- [Architecture and Flow Diagram](#%EF%B8%8F-architecture-and-flow-diagram)
 - [MCP Primitives Implemented](#-mcp-primitives-implemented)
 - [Project Structure](#-project-structure)
 - [Tech Stack](#-tech-stack-100-free)
@@ -39,14 +45,16 @@
 
 FinSight MCP is a **complete, end-to-end implementation** of the Model Context Protocol. It consists of two parts working together:
 
-1. **An MCP Server** (`finsight_server.py`) — exposes Indian stock market capabilities through all 3 MCP primitives: Tools, Resources, and Prompts
-2. **A Custom MCP Client** (`finsight_client.py`) — connects to the server, discovers its capabilities, and runs a conversational chat loop powered by a local Ollama LLM
+| Part | File | Role |
+|------|------|------|
+| **MCP Server** | `finsight_server.py` | Exposes stock market capabilities through all 3 MCP primitives: Tools, Resources, and Prompts |
+| **MCP Client** | `finsight_client.py` | Connects to the server, discovers capabilities, runs a conversational chat loop via Ollama LLM |
 
-The core insight this project demonstrates: **MCP separates the "what the AI can do" (server) from "how the AI is used" (client)** — making AI capabilities modular, reusable, and composable across any client.
+> **Core insight:** MCP separates *"what the AI can do"* (server) from *"how the AI is used"* (client) — making AI capabilities modular, reusable, and composable across any client.
 
 ### Why Indian Stock Market?
 
-I work as a Junior Data Scientist at a brokerage firm (Pure Broking Pvt. Ltd.) and have hands-on experience building RAG systems for regulatory compliance using Anthropic and OpenAI APIs. Combining MCP with the Indian financial market domain made this project authentic to my real-world work, immediately demonstrating practical value to recruiters in the fintech/AI space.
+I work as a Junior Data Scientist at **Pure Broking Pvt. Ltd.** (a brokerage firm) and have built production RAG systems for regulatory compliance using Anthropic and OpenAI APIs. Combining MCP with Indian financial data made this project authentic to my real-world domain — and immediately legible to fintech/AI recruiters.
 
 ---
 
@@ -54,140 +62,110 @@ I work as a Junior Data Scientist at a brokerage firm (Pure Broking Pvt. Ltd.) a
 
 ### 1. MCP Inspector — Server Connection
 
-> The MCP Inspector is a developer tool that connects directly to an MCP server and lets you browse and test all exposed tools, resources, and prompts without needing a full client. Think of it as **Postman, but for MCP servers**.
+> The MCP Inspector is a developer tool that connects directly to your MCP server to browse and test all tools, resources, and prompts — no client needed. Think **Postman, but for MCP servers**.
 
 ![MCP Inspector](screenshots/inspector_disconnected.png)
 
-*Inspector launched with Transport Type: STDIO, Command: python, Arguments: path to finsight_server.py. Clicking Connect spawns the server and discovers all capabilities.*
+*Inspector launched with Transport: STDIO. Clicking Connect spawns the server subprocess and discovers all capabilities.*
 
 ---
 
-### 2. All MCP Primitives Visible in One Screen
+### 2. All Three MCP Primitives — One Screen
 
-> Typing `tools` in the chat client triggers calls to `list_tools()`, `list_resources()`, and `list_prompts()` on the server — demonstrating complete discovery of all three MCP primitives.
+> Typing `tools` calls `list_tools()`, `list_resources()`, and `list_prompts()` on the server simultaneously — proving complete discovery of all three MCP primitives.
 
 ![Tools Resources Prompts](screenshots/tools_resources_prompts.png)
 
-**What this demonstrates:**
-- **4 MCP Tools** — callable functions: `get_stock_price`, `search_news`, `analyse_fundamentals`, `compare_stocks`
-- **3 MCP Resources** — context files served at URIs: `file://nse_symbols`, `file://market_glossary`, `file://portfolio_template`
-- **2 MCP Prompts** — server-side templates: `stock_analysis_prompt`, `portfolio_review_prompt`
-
-This single screen proves all three MCP primitives are working correctly on the server.
+| Column | What it shows |
+|--------|--------------|
+| **Tools** | 4 callable functions the LLM can invoke |
+| **Resources** | 3 context files served at file:// URIs |
+| **Prompts** | 2 parameterised server-side templates |
 
 ---
 
 ### 3. Live Tool Execution — Real-Time Stock Price
 
-> Asking "What is the current price of TCS?" triggers the keyword router, which directly calls `get_stock_price` with `{"ticker": "TCS.NS"}`. The raw JSON tool result is displayed before the LLM summarises it in natural language.
+> "What is the current price of TCS?" → keyword router fires → `get_stock_price(ticker="TCS.NS")` → live JSON → LLM summarises.
 
 ![TCS Live Price](screenshots/tcs_price.png)
 
-**What this demonstrates:**
-- MCP client successfully routes to `get_stock_price` tool with correct arguments
-- Tool calls Yahoo Finance (yfinance) and returns structured JSON in real time
-- **Live data: TCS at ₹2,410.50 (−1.31% on the day), Market Cap ₹8.72 Lakh Cr, Volume 24,66,012**
-- The LLM then summarises the JSON into a clean, human-readable response
-- Notice the timestamp `2026-03-15 14:49:46` — this is genuinely live data
+**Live result:** TCS at **₹2,410.50 (−1.31%)** · Market Cap **₹8.72 Lakh Cr** · Timestamp `2026-03-15 14:49:46`
 
 ---
 
-### 4. Multi-Stock Comparison Tool
+### 4. Multi-Stock Comparison
 
-> "Compare TCS, Infosys, and Wipro" triggers `compare_stocks` with all three tickers. The tool fetches data for all three stocks and returns a ranked comparison with automatic winner detection.
+> "Compare TCS, Infosys, and Wipro" → `compare_stocks(["TCS.NS","INFY.NS","WIPRO.NS"])` → side-by-side metrics + auto-rankings.
 
 ![Compare Stocks](screenshots/compare_stocks.png)
 
-**What this demonstrates:**
-- `compare_stocks` called with `{"tickers": ["TCS.NS", "INFY.NS", "WIPRO.NS"]}`
-- **Live prices: TCS ₹2,410 | Infosys ₹1,248 | Wipro ₹197**
-- Automatic rankings: best day performance, 52-week strongest, lowest P/E ratio
-- The LLM contextualises: Wipro has highest 52-week strength and lowest P/E
+**Result:** TCS ₹2,410 · Infosys ₹1,248 · Wipro ₹197 — with winner detection across P/E, ROE, 52-week performance.
 
 ---
 
-### 5. MCP Prompt Template in Action — Deep Analysis Report
+### 5. MCP Prompt Template — Deep Analysis Report
 
-> Typing `analyse RELIANCE.NS` retrieves the `stock_analysis_prompt` template from the server, fills in the `{{ticker}}` and `{{timeframe}}` placeholders, then auto-calls two tools to gather data before generating an 8-section structured report.
+> `analyse RELIANCE.NS` → fetches `stock_analysis_prompt` from server → fills `{{ticker}}` + `{{timeframe}}` → auto-calls 2 tools → LLM generates 8-section report.
 
-![Reliance Analysis Report](screenshots/reliance_analysis.png)
+![Reliance Analysis](screenshots/reliance_analysis.png)
 
-**What this demonstrates:**
-- Client calls `get_prompt("stock_analysis_prompt", {"ticker": "RELIANCE.NS", "timeframe": "medium-term"})` on the server
-- Server fills the template and returns structured message content
-- Two tools are auto-invoked: `analyse_fundamentals` + `search_news`
-- LLM generates a comprehensive report with real data:
-  - Current price: ₹1,380.70 (+0.25%)
-  - P/E: 22.47 vs sector avg 20.12
-  - ROE: 0.6% (below 15% ideal — flagged as concern)
-  - 52W range: ₹1,142 to ₹1,611 (bullish trend confirmed)
-  - News: $300B US refinery announcement, Venezuela oil strategy
-  - Verdict: Overvalued given high P/E and P/B vs sector
-
-This is the most powerful feature — **MCP Prompts enable reproducible, server-defined AI workflows** that any client can invoke with just a name and arguments.
+**Result:** Full structured report — P/E 22.47, ROE 0.6%, D/E 35.65, 52W range ₹1,142–₹1,611, news catalysts, investment verdict.
 
 ---
 
 ## 🧠 What is MCP? My Understanding
 
-After completing the Anthropic Academy MCP course and building this project end-to-end, here is my deep understanding of MCP:
-
 ### The Problem MCP Solves
 
-Before MCP, every AI application built its own custom integration layer between the LLM and external tools. Building Claude access to a database? Custom code. Want GPT-4 to access the same database? Rewrite it differently. No standard existed.
+Before MCP, every AI application built its own custom glue layer between the LLM and external tools. Want Claude to query your database? Custom code. Want GPT-4 to query the same database? Rewrite it entirely. No standard existed.
 
-**MCP is the USB-C of AI tool integrations** — a universal standard so any MCP-compatible client (Claude Desktop, custom Python clients, VS Code extensions, IDEs) can talk to any MCP-compatible server (databases, APIs, file systems, SaaS tools) using the same protocol, without custom glue code.
+> **MCP is the USB-C of AI tool integrations** — a universal protocol so any MCP client (Claude Desktop, custom Python, VS Code) can plug into any MCP server (databases, APIs, file systems) without custom integration code.
 
 ### The Three MCP Primitives
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        MCP PRIMITIVES                               │
-├─────────────────┬───────────────────────┬───────────────────────────┤
-│   TOOLS         │   RESOURCES           │   PROMPTS                 │
-│                 │                       │                           │
-│ "Do something"  │ "Know something"      │ "Template something"      │
-│                 │                       │                           │
-│ Functions the   │ Static/semi-static    │ Reusable, parameterised   │
-│ LLM can call.   │ context the server    │ message templates stored  │
-│ Like API calls. │ exposes. Read once,   │ on the server. Client     │
-│ Has side        │ injected into LLM     │ retrieves + fills with    │
-│ effects.        │ context window.       │ arguments at runtime.     │
-│                 │                       │                           │
-│ Example here:   │ Example here:         │ Example here:             │
-│ get_stock_price │ nse_symbols.json      │ stock_analysis_prompt     │
-│ search_news     │ market_glossary.md    │ portfolio_review_prompt   │
-└─────────────────┴───────────────────────┴───────────────────────────┘
+```mermaid
+mindmap
+  root((MCP))
+    Tools
+      get_stock_price
+      search_news
+      analyse_fundamentals
+      compare_stocks
+    Resources
+      nse_symbols.json
+      market_glossary.md
+      portfolio_template.txt
+    Prompts
+      stock_analysis_prompt
+      portfolio_review_prompt
 ```
 
-### How MCP Communication Works (stdio transport)
+| Primitive | Analogy | When to use | Example here |
+|-----------|---------|-------------|-------------|
+| **Tools** | API endpoint | Real-time data, actions with side effects | Live stock price from yfinance |
+| **Resources** | Reference manual | Static context injected into LLM memory | Finance glossary, NSE symbol list |
+| **Prompts** | Workflow template | Reusable, parameterised LLM workflows | 8-section analysis report |
 
-```
-CLIENT                          SERVER
-  │                               │
-  │──── spawn as subprocess ─────>│  (python server/finsight_server.py)
-  │                               │
-  │──── initialize request ──────>│
-  │<─── initialize response ──────│  (server capabilities)
-  │                               │
-  │──── tools/list ──────────────>│
-  │<─── [Tool, Tool, Tool] ───────│
-  │                               │
-  │──── resources/list ──────────>│
-  │<─── [Resource, Resource] ─────│
-  │                               │
-  │──── tools/call ──────────────>│  {name: "get_stock_price",
-  │     (when user asks price)     │   arguments: {ticker: "TCS.NS"}}
-  │<─── TextContent (JSON) ───────│  (yfinance fetches live data)
-  │                               │
-  │──── resources/read ──────────>│  uri: "file://portfolio_template"
-  │<─── TextContent (file) ───────│  (portfolio file contents)
-  │                               │
-  │──── prompts/get ─────────────>│  {name: "stock_analysis_prompt",
-  │                               │   arguments: {ticker: "RELIANCE.NS"}}
-  │<─── GetPromptResult ──────────│  (filled template as messages)
+### MCP Communication Protocol
 
-All messages: JSON-RPC 2.0 format over stdin/stdout pipes
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant C as MCP Client
+    participant O as Ollama LLM
+    participant S as MCP Server
+    participant Y as yfinance API
+
+    U->>C: "What is the price of TCS?"
+    C->>C: Keyword router detects price + TCS
+    C->>S: tools/call → get_stock_price(ticker="TCS.NS")
+    S->>Y: yf.Ticker("TCS.NS").info
+    Y-->>S: Live JSON data
+    S-->>C: TextContent(JSON)
+    C->>O: Summarise this JSON for user
+    O-->>C: Natural language response
+    C-->>U: "TCS is trading at ₹2,410.50 (−1.31%)"
 ```
 
 ---
@@ -196,192 +174,174 @@ All messages: JSON-RPC 2.0 format over stdin/stdout pipes
 
 ### Full System Architecture
 
-```
-╔═══════════════════════════════════════════════════════════════════════╗
-║                     FINSIGHT MCP — FULL ARCHITECTURE                  ║
-╠═══════════════════════════════════════════════════════════════════════╣
-║                                                                       ║
-║   ┌────────────────────────────────────────────────────────────┐     ║
-║   │                      USER (Terminal)                        │     ║
-║   │     "What is the current price of TCS?"                     │     ║
-║   └─────────────────────────┬──────────────────────────────────┘     ║
-║                             │                                         ║
-║   ┌─────────────────────────▼──────────────────────────────────┐     ║
-║   │              MCP CLIENT  (finsight_client.py)               │     ║
-║   │                                                              │     ║
-║   │   ┌──────────────────────┐   ┌───────────────────────────┐ │     ║
-║   │   │   Keyword Router     │   │   Ollama (llama3.2)        │ │     ║
-║   │   │   (FAST PATH)        │   │   Local LLM (SLOW PATH)   │ │     ║
-║   │   │                      │   │                           │ │     ║
-║   │   │  Detects: price,     │   │  Interprets complex       │ │     ║
-║   │   │  compare, news       │   │  queries. Generates       │ │     ║
-║   │   │  queries directly    │   │  tool call JSON.          │ │     ║
-║   │   │  from user text      │   │  Auto-fixes arg names.    │ │     ║
-║   │   └──────────┬───────────┘   └─────────────┬─────────────┘ │     ║
-║   │              └──────────────┬───────────────┘               │     ║
-║   │                             │ decides which MCP call         │     ║
-║   └─────────────────────────────┼──────────────────────────────┘     ║
-║                                 │ JSON-RPC 2.0 over stdio             ║
-║   ┌─────────────────────────────▼──────────────────────────────┐     ║
-║   │              MCP SERVER  (finsight_server.py)               │     ║
-║   │                                                              │     ║
-║   │  ┌─────────────────┐ ┌──────────────────┐ ┌─────────────┐ │     ║
-║   │  │     TOOLS        │ │    RESOURCES      │ │   PROMPTS   │ │     ║
-║   │  │                  │ │                  │ │             │ │     ║
-║   │  │ get_stock_price  │ │ nse_symbols.json │ │ stock_      │ │     ║
-║   │  │ search_news      │ │ market_glossary  │ │ analysis_   │ │     ║
-║   │  │ analyse_         │ │ .md              │ │ prompt      │ │     ║
-║   │  │ fundamentals     │ │ portfolio_       │ │             │ │     ║
-║   │  │ compare_stocks   │ │ template.txt     │ │ portfolio_  │ │     ║
-║   │  └────────┬─────────┘ └────────┬─────────┘ │ review_     │ │     ║
-║   │           │                    │ read_text()│ prompt      │ │     ║
-║   └───────────┼────────────────────┼────────────┴─────────────┘     ║
-║               │                    │                                   ║
-║   ┌───────────▼────────┐  ┌────────▼──────────────────────────┐     ║
-║   │  yfinance          │  │  Local filesystem                  │     ║
-║   │  Yahoo Finance API │  │  (JSON / Markdown / Text files)    │     ║
-║   │  NewsAPI free tier │  └───────────────────────────────────┘     ║
-║   └────────────────────┘                                             ║
-╚═══════════════════════════════════════════════════════════════════════╝
+```mermaid
+graph TB
+    subgraph USER["👤 User Interface"]
+        U[Terminal Chat Loop]
+    end
+
+    subgraph CLIENT["🖥️ MCP Client — finsight_client.py"]
+        KR[Keyword Router\nFAST PATH]
+        LLM[Ollama llama3.2\nSLOW PATH]
+        AF[Argument Auto-Fixer]
+        CW[Context Window Manager]
+    end
+
+    subgraph SERVER["⚙️ MCP Server — finsight_server.py"]
+        direction TB
+        subgraph TOOLS["🔧 Tools"]
+            T1[get_stock_price]
+            T2[search_news]
+            T3[analyse_fundamentals]
+            T4[compare_stocks]
+        end
+        subgraph RESOURCES["📁 Resources"]
+            R1[nse_symbols.json]
+            R2[market_glossary.md]
+            R3[portfolio_template.txt]
+        end
+        subgraph PROMPTS["💬 Prompts"]
+            P1[stock_analysis_prompt]
+            P2[portfolio_review_prompt]
+        end
+    end
+
+    subgraph DATA["🌐 Data Sources"]
+        YF[yfinance\nYahoo Finance]
+        NA[NewsAPI\nFree Tier]
+        FS[Local Filesystem]
+    end
+
+    U --> KR
+    U --> LLM
+    KR -->|direct tool call| SERVER
+    LLM --> AF
+    AF -->|fixed tool call| SERVER
+    T1 & T2 & T3 & T4 --> YF
+    T2 --> NA
+    R1 & R2 & R3 --> FS
+    SERVER -->|JSON-RPC stdio| CLIENT
+    CW --> LLM
+
+    style USER fill:#1a1a2e,color:#e0e0e0
+    style CLIENT fill:#16213e,color:#e0e0e0
+    style SERVER fill:#0f3460,color:#e0e0e0
+    style DATA fill:#533483,color:#e0e0e0
+    style TOOLS fill:#1a472a,color:#e0e0e0
+    style RESOURCES fill:#4a1942,color:#e0e0e0
+    style PROMPTS fill:#7b2d00,color:#e0e0e0
 ```
 
 ---
 
 ### Request Flow — Simple Price Query
 
-```
-USER: "What is the current price of TCS?"
-          │
-          ▼
-┌─────────────────────────────────────────┐
-│  STEP 1: Keyword Router                  │
-│                                          │
-│  Detects trigger word: "price"           │
-│  Detects company name: "tcs"             │
-│  Maps to ticker: "TCS.NS"                │
-│                                          │
-│  Builds direct tool call:                │
-│  { name: "get_stock_price",              │
-│    arguments: { ticker: "TCS.NS" } }     │
-│                                          │
-│  ✓ No LLM needed for this step           │
-└───────────────────┬─────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  STEP 2: MCP Tool Call (JSON-RPC)        │
-│                                          │
-│  Client → Server:                        │
-│  { method: "tools/call",                 │
-│    params: { name: "get_stock_price",    │
-│              arguments: {ticker:"TCS.NS"}│
-│            }                             │
-│  }                                       │
-└───────────────────┬─────────────────────┘
-                    │ stdio pipe
-                    ▼
-┌─────────────────────────────────────────┐
-│  STEP 3: Server Executes Tool            │
-│                                          │
-│  finsight_server.py:                     │
-│  call_tool("get_stock_price",            │
-│            {"ticker": "TCS.NS"})         │
-│      ↓                                   │
-│  tools/stock_price.py:                   │
-│  yf.Ticker("TCS.NS").info                │
-│  → Live data from Yahoo Finance          │
-└───────────────────┬─────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  STEP 4: Tool Returns Structured JSON    │
-│                                          │
-│  { "ticker": "TCS.NS",                   │
-│    "company_name": "Tata Consultancy...",│
-│    "current_price": 2410.5,              │
-│    "price_change_pct": -1.31,            │
-│    "market_cap_formatted": "₹8.72 Lakh Cr"│
-│    "status": "success" }                 │
-└───────────────────┬─────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  STEP 5: LLM Summarises the JSON         │
-│                                          │
-│  Ollama (llama3.2) receives:             │
-│  - Tool result JSON                      │
-│  - Instruction: "Summarise clearly"      │
-│                                          │
-│  Generates natural language response     │
-└───────────────────┬─────────────────────┘
-                    │
-                    ▼
-OUTPUT: "TCS (Tata Consultancy Services) is trading at
-         ₹2,410.50, down ₹31.90 (−1.31%) today on NSE."
+```mermaid
+flowchart TD
+    A([👤 User types:\n'What is the price of TCS?']) --> B
+
+    B{Keyword\nRouter}
+    B -->|Detects 'price' + 'tcs'| C
+    B -->|Complex query| G
+
+    C[Maps 'tcs' → 'TCS.NS'\nBuilds tool call directly]
+    C --> D
+
+    D[/"MCP tools/call\n{name: get_stock_price,\n arguments: {ticker: TCS.NS}}"/]
+    D --> E
+
+    E["⚙️ Server executes\nyf.Ticker('TCS.NS').info\n→ Yahoo Finance API"]
+    E --> F
+
+    F[/"Returns JSON:\n{current_price: 2410.5,\n price_change_pct: -1.31,\n market_cap: ₹8.72 Lakh Cr}"/]
+    F --> H
+
+    G["🧠 Ollama LLM\nInterprets query\nGenerates tool call JSON"]
+    G --> D
+
+    H["🧠 Ollama summarises JSON\ninto natural language"]
+    H --> I
+
+    I([✅ Output:\n'TCS is trading at ₹2,410.50\ndown 1.31% today on NSE'])
+
+    style A fill:#1a472a,color:#fff
+    style I fill:#1a472a,color:#fff
+    style B fill:#7b2d00,color:#fff
+    style D fill:#0f3460,color:#fff
+    style F fill:#0f3460,color:#fff
+    style E fill:#533483,color:#fff
 ```
 
 ---
 
 ### Prompt Template Flow — `analyse RELIANCE.NS`
 
+```mermaid
+flowchart LR
+    A([analyse RELIANCE.NS]) --> B
+
+    B["Client calls\nprompts/get on server\n\nname: stock_analysis_prompt\nargs: {ticker: RELIANCE.NS,\n       timeframe: medium-term}"]
+
+    B --> C["Server reads\nstock_analysis.txt\n\nFills {{ticker}} → RELIANCE.NS\nFills {{timeframe}} → medium-term\n\nReturns PromptMessage"]
+
+    C --> D
+
+    D["Client auto-calls\n2 tools in parallel"]
+
+    D --> E["analyse_fundamentals\n→ P/E, ROE, EPS\n   margins, debt"]
+    D --> F["search_news\n→ Latest 5 headlines\n   about Reliance"]
+
+    E --> G["Both results\ninjected into\nLLM context"]
+    F --> G
+
+    G --> H["🧠 Ollama generates\n8-section report\nusing template +\nreal tool data"]
+
+    H --> I(["✅ Full structured\nanalysis report\nwith live data\nand verdict"])
+
+    style A fill:#1a472a,color:#fff
+    style I fill:#1a472a,color:#fff
+    style D fill:#7b2d00,color:#fff
+    style H fill:#0f3460,color:#fff
 ```
-USER: "analyse RELIANCE.NS"
-          │
-          ▼
-┌──────────────────────────────────────────┐
-│  Client calls prompts/get on server       │
-│                                           │
-│  session.get_prompt(                      │
-│    "stock_analysis_prompt",               │
-│    { "ticker": "RELIANCE.NS",             │
-│      "timeframe": "medium-term" }         │
-│  )                                        │
-└────────────────────┬─────────────────────┘
-                     │
-                     ▼
-┌──────────────────────────────────────────┐
-│  Server fills the template               │
-│                                           │
-│  stock_analysis.txt contains:            │
-│  "Perform a {{timeframe}} analysis       │
-│   of the stock: {{ticker}} ..."          │
-│                                           │
-│  After substitution:                     │
-│  "Perform a medium-term analysis         │
-│   of the stock: RELIANCE.NS ..."         │
-│                                           │
-│  Returns as PromptMessage (role: user)   │
-└────────────────────┬─────────────────────┘
-                     │
-                     ▼
-┌──────────────────────────────────────────┐
-│  Client auto-gathers supporting data     │
-│                                           │
-│  Tool 1: analyse_fundamentals            │
-│  → P/E, ROE, EPS, margins, debt ratios   │
-│                                           │
-│  Tool 2: search_news                     │
-│  → Latest 5 headlines about Reliance     │
-│                                           │
-│  Both results injected into LLM context  │
-└────────────────────┬─────────────────────┘
-                     │
-                     ▼
-┌──────────────────────────────────────────┐
-│  Ollama generates the 8-section report   │
-│                                           │
-│  Input: prompt template +                │
-│         fundamentals JSON +              │
-│         news JSON                        │
-│                                           │
-│  Output: Structured analysis with        │
-│  company snapshot, valuation, financials,│
-│  technicals, news, verdict, target price │
-└────────────────────┬─────────────────────┘
-                     │
-                     ▼
-RESULT: Full structured investment analysis
-        report with live data and context
+
+---
+
+### MCP Session Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Initialising : python client/finsight_client.py
+
+    Initialising --> Discovering : session.initialize()
+    note right of Discovering
+        list_tools() → 4 tools
+        list_resources() → 3 resources
+        list_prompts() → 2 prompts
+    end note
+
+    Discovering --> LoadingContext : Resources read
+    note right of LoadingContext
+        read_resource(portfolio_template)
+        Injected as system message
+        LLM now knows user holdings
+    end note
+
+    LoadingContext --> ChatLoop : Ready
+
+    ChatLoop --> KeywordRoute : Simple query\n(price, compare, news)
+    ChatLoop --> LLMRoute : Complex query
+    ChatLoop --> BuiltinCmd : tools / analyse / portfolio
+
+    KeywordRoute --> ToolCall : Direct, no LLM
+    LLMRoute --> ArgFix : LLM generates JSON
+    ArgFix --> ToolCall : Auto-fix wrong arg names
+    BuiltinCmd --> PromptCall : get_prompt()
+
+    ToolCall --> Summarise : JSON result back
+    PromptCall --> Summarise : Template + tool data
+
+    Summarise --> ChatLoop : Response shown
+    ChatLoop --> [*] : quit
 ```
 
 ---
@@ -390,14 +350,31 @@ RESULT: Full structured investment analysis
 
 ### Tools (4 total)
 
-Tools are **executable functions** with strict JSON Schema validation. The LLM reads the schema to understand what arguments to pass.
+Tools are **executable functions** the LLM can call with structured, schema-validated arguments.
 
-| Tool | Arguments | Data Source | What it returns |
-|------|-----------|-------------|-----------------|
-| `get_stock_price` | `ticker: string` | yfinance | Current price, change %, volume, market cap |
-| `search_news` | `query: string`, `max_results: int` | NewsAPI / yfinance | Latest headlines with source and date |
-| `analyse_fundamentals` | `ticker: string` | yfinance | P/E, P/B, ROE, EPS, margins, debt ratios, 52W range |
-| `compare_stocks` | `tickers: string[]` | yfinance | Side-by-side comparison + auto-rankings |
+```mermaid
+graph LR
+    subgraph Schema["JSON Schema Validation"]
+        direction TB
+        S1["get_stock_price\nrequired: ticker string"]
+        S2["search_news\nrequired: query string\noptional: max_results int"]
+        S3["analyse_fundamentals\nrequired: ticker string"]
+        S4["compare_stocks\nrequired: tickers string array"]
+    end
+
+    subgraph Output["Returns"]
+        direction TB
+        O1["price, change%, volume\nmarket cap, timestamp"]
+        O2["headlines, source\ndescription, date"]
+        O3["P/E, P/B, ROE, EPS\nmargins, debt, 52W range"]
+        O4["side-by-side table\nauto-rankings"]
+    end
+
+    S1 --> O1
+    S2 --> O2
+    S3 --> O3
+    S4 --> O4
+```
 
 ```python
 # How a tool is registered on the server
@@ -426,50 +403,66 @@ async def list_tools() -> list[types.Tool]:
 
 ### Resources (3 total)
 
-Resources are **read-only context files**. They don't execute — they provide knowledge injected into the LLM's context window.
+Resources are **read-only context files** — loaded once, injected into LLM memory.
 
-| URI | File | Content | Used for |
-|---|---|---|---|
-| `file://nse_symbols` | `nse_symbols.json` | 50 NSE tickers + sectors | LLM knows what tickers exist |
-| `file://market_glossary` | `market_glossary.md` | 30+ finance term definitions | LLM explains terms accurately |
-| `file://portfolio_template` | `portfolio_template.txt` | 7-stock sample portfolio | Portfolio review command |
+```mermaid
+graph TD
+    subgraph RES["MCP Resources"]
+        R1["📄 file://nse_symbols\nnse_symbols.json\n50 NSE tickers + sectors"]
+        R2["📖 file://market_glossary\nmarket_glossary.md\n30+ finance term definitions"]
+        R3["💼 file://portfolio_template\nportfolio_template.txt\n7-stock sample portfolio"]
+    end
 
-```python
-# Resource is loaded once at startup and injected as system context
-portfolio_res = await session.read_resource("file://portfolio_template")
-messages.append({
-    "role": "system",
-    "content": f"USER'S PORTFOLIO:\n{portfolio_text}"
-    # Now the LLM knows the user's holdings for the entire session
-})
+    subgraph USAGE["Injected into LLM as..."]
+        U1["LLM knows all valid tickers\navoids hallucinating symbols"]
+        U2["LLM explains P/E, ROE etc.\naccurately from glossary"]
+        U3["System message at startup\nLLM knows user holdings\nfor entire session"]
+    end
+
+    R1 --> U1
+    R2 --> U2
+    R3 --> U3
+
+    style RES fill:#4a1942,color:#fff
+    style USAGE fill:#1a472a,color:#fff
 ```
 
-**Key insight:** Resources avoid re-fetching static data on every request. The glossary and symbol list are loaded once into the LLM's memory — reducing latency and API calls.
+> **Key insight:** Resources avoid re-fetching static data on every request. Load once → inject → LLM remembers throughout the session.
 
 ---
 
 ### Prompts (2 total)
 
-Prompts are **parameterised workflow templates** stored on the server. They represent the most powerful (and most underused) MCP primitive.
+Prompts are **parameterised workflow templates** stored on the server — the most powerful and most underused MCP primitive.
 
-| Prompt | Arguments | Template produces |
-|---|---|---|
-| `stock_analysis_prompt` | `ticker`, `timeframe` | 8-section structured analysis format |
-| `portfolio_review_prompt` | `risk_profile` | Portfolio score + buy/hold/sell table |
+```mermaid
+graph LR
+    subgraph Client
+        C1["client calls\nget_prompt()"]
+    end
 
-```python
-# Prompt with argument placeholders on the server
-@app.get_prompt()
-async def get_prompt(name: str, arguments: dict) -> types.GetPromptResult:
-    template = Path("prompts/stock_analysis.txt").read_text()
-    filled = template.replace("{{ticker}}", arguments["ticker"])
-    filled = filled.replace("{{timeframe}}", arguments.get("timeframe", "medium-term"))
-    return types.GetPromptResult(
-        messages=[PromptMessage(role="user", content=TextContent(text=filled))]
-    )
+    subgraph Server
+        T["stock_analysis.txt\n\nPerform a {{timeframe}}\nanalysis of {{ticker}}...\n[8 structured sections]"]
+    end
+
+    subgraph Filled
+        F["Perform a medium-term\nanalysis of RELIANCE.NS...\n[sections filled in]"]
+    end
+
+    subgraph Result
+        R["Returned as\nPromptMessage\nrole: user"]
+    end
+
+    C1 -->|"ticker=RELIANCE.NS\ntimeframe=medium-term"| T
+    T --> F
+    F --> R
+
+    style Server fill:#7b2d00,color:#fff
+    style Filled fill:#0f3460,color:#fff
+    style Result fill:#1a472a,color:#fff
 ```
 
-**Why prompts matter:** They encode **standardised AI workflows** on the server side. Any MCP client — whether it's Claude Desktop, a custom Python client, or a VS Code extension — can trigger the same deep analysis workflow just by calling `get_prompt("stock_analysis_prompt", {"ticker": "TCS.NS"})`.
+> **Why this matters:** Any MCP client — Claude Desktop, VS Code, a mobile app — can trigger the same structured analysis workflow with a single `get_prompt()` call. The workflow logic lives on the server, not in the client.
 
 ---
 
@@ -478,32 +471,34 @@ async def get_prompt(name: str, arguments: dict) -> types.GetPromptResult:
 ```
 finsight-mcp/
 │
-├── server/                          ← MCP Server (the "what")
-│   ├── finsight_server.py           ← Main server: tools + resources + prompts
-│   ├── __init__.py
-│   ├── tools/
-│   │   ├── __init__.py
-│   │   ├── stock_price.py           ← get_stock_price (yfinance)
-│   │   ├── news_search.py           ← search_news (NewsAPI + yfinance fallback)
-│   │   ├── fundamentals.py          ← analyse_fundamentals (50+ metrics)
-│   │   └── compare_stocks.py        ← compare_stocks (multi-ticker)
-│   └── resources/
-│       ├── nse_symbols.json         ← 50 NSE tickers with sectors
-│       ├── market_glossary.md       ← Finance term definitions
-│       └── portfolio_template.txt   ← Sample user portfolio
+├── 📂 server/                        ← MCP Server  (the "what")
+│   ├── finsight_server.py            ← Tools + Resources + Prompts registered here
+│   ├── 📂 tools/
+│   │   ├── stock_price.py            ← get_stock_price  (yfinance)
+│   │   ├── news_search.py            ← search_news      (NewsAPI + yfinance fallback)
+│   │   ├── fundamentals.py           ← analyse_fundamentals  (50+ metrics)
+│   │   └── compare_stocks.py         ← compare_stocks   (multi-ticker, auto-ranked)
+│   └── 📂 resources/
+│       ├── nse_symbols.json          ← 50 NSE tickers + company names + sectors
+│       ├── market_glossary.md        ← 30+ financial term definitions
+│       └── portfolio_template.txt    ← 7-stock sample user portfolio
 │
-├── client/
-│   └── finsight_client.py           ← Custom MCP client (the "how")
-│                                       Keyword router + Ollama + arg-fixer
+├── 📂 client/
+│   └── finsight_client.py            ← MCP Client  (the "how")
+│                                        • Keyword router (fast path)
+│                                        • Ollama integration (slow path)
+│                                        • Argument name auto-fixer
+│                                        • Context window management
 │
-├── prompts/
-│   ├── stock_analysis.txt           ← 8-section analysis template
-│   └── portfolio_review.txt         ← Portfolio review template
+├── 📂 prompts/
+│   ├── stock_analysis.txt            ← 8-section deep analysis template
+│   └── portfolio_review.txt          ← Portfolio score + buy/hold/sell template
 │
-├── tests/
-│   └── test_tools.py                ← Unit tests for all 4 tools
+├── 📂 tests/
+│   └── test_tools.py                 ← Unit tests for all 4 tools
 │
-├── .env.example                     ← Config template
+├── 📂 screenshots/                   ← Demo screenshots for this README
+├── .env.example                      ← Config template (Ollama model, NewsAPI key)
 ├── requirements.txt
 └── README.md
 ```
@@ -512,97 +507,108 @@ finsight-mcp/
 
 ## 🛠️ Tech Stack (100% Free)
 
-| Component | Technology | Cost |
-|---|---|---|
-| MCP Framework | `mcp` Python SDK (official Anthropic) | Free |
-| Local LLM | Ollama + llama3.2 (runs on M1 Mac) | Free |
-| Stock Data | `yfinance` Yahoo Finance | Free |
-| News | NewsAPI free tier + yfinance fallback | Free |
-| Terminal UI | `rich` | Free |
-| HTTP Client | `httpx` (async) | Free |
-| Config | `python-dotenv` | Free |
+```mermaid
+graph LR
+    subgraph Free["💰 Total Cost: ₹0"]
+        direction TB
+        A["🐍 Python 3.11\nLanguage"]
+        B["🔌 MCP SDK\nAnthropic official"]
+        C["🧠 Ollama + llama3.2\nLocal LLM on M1 Mac"]
+        D["📈 yfinance\nYahoo Finance API"]
+        E["📰 NewsAPI\nFree tier 100 req/day"]
+        F["🎨 rich\nTerminal UI"]
+        G["🌐 httpx\nAsync HTTP client"]
+    end
 
-**Total monthly cost to run: ₹0**
+    style Free fill:#1a1a2e,color:#e0e0e0
+```
+
+| Component | Technology | Why chosen |
+|-----------|-----------|------------|
+| MCP Framework | `mcp` Python SDK (Anthropic official) | Official SDK, best practices built-in |
+| Local LLM | Ollama + llama3.2 | Runs on M1 Mac, no API cost, fast |
+| Stock Data | `yfinance` | Free, NSE supported, no rate limits |
+| News | NewsAPI free + yfinance fallback | Graceful degradation if no key |
+| Terminal UI | `rich` | Tables, markdown, colour-coded panels |
+| HTTP | `httpx` async | Non-blocking Ollama communication |
 
 ---
 
 ## 🚀 Setup and Installation (macOS M1)
 
-### Step 1 — Install Prerequisites
+### Prerequisites
 
 ```bash
-# Homebrew (package manager)
+# 1. Homebrew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Python 3.11
-brew install python@3.11
+# 2. Python 3.11
+brew install python@3.11 && python3 --version
 
-# Ollama (local LLM runtime)
+# 3. Ollama (local LLM runtime)
 brew install ollama
 
-# Node.js (for MCP Inspector)
+# 4. Node.js (for MCP Inspector)
 brew install node
 ```
 
-### Step 2 — Project Setup
+### Project Setup
 
 ```bash
 git clone https://github.com/Akash-47-tank/finsight-mcp.git
 cd finsight-mcp
 
-python3 -m venv venv
-source venv/bin/activate
-
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 ```
 
-### Step 3 — Download the LLM Model (one-time)
+### Download LLM Model (one-time, ~2GB)
 
 ```bash
-# Terminal 1: start Ollama (keep running)
+# Terminal 1 — keep running
 ollama serve
 
-# Terminal 2: download the model (~2GB)
+# Terminal 2
 ollama pull llama3.2
-ollama list   # Verify it appears
+ollama list    # confirm it appears
 ```
 
 ---
 
 ## ▶️ How to Run
 
-### Full Chat Client
+### Option 1 — Full Chat Client
 
 ```bash
-# Terminal 1
+# Terminal 1: keep Ollama running
 ollama serve
 
-# Terminal 2
+# Terminal 2: launch FinSight
 source venv/bin/activate
 python client/finsight_client.py
 ```
 
-**Commands inside the chat:**
+**Available commands:**
 
-| Command | What happens |
-|---|---|
-| `tools` | Lists all tools, resources, prompts from server |
-| `What is the price of TCS?` | Calls `get_stock_price` tool |
-| `Compare TCS and Infosys` | Calls `compare_stocks` tool |
-| `News about Reliance` | Calls `search_news` tool |
-| `analyse RELIANCE.NS` | Uses `stock_analysis_prompt` template |
-| `portfolio` | Uses `portfolio_review_prompt` template |
-| `What does P/E mean?` | LLM answers using glossary resource context |
+| Command | MCP Primitive Used | What happens |
+|---------|-------------------|--------------|
+| `tools` | list_tools + list_resources + list_prompts | Shows all server capabilities |
+| `What is the price of TCS?` | Tool → `get_stock_price` | Live NSE price |
+| `Compare TCS and Infosys` | Tool → `compare_stocks` | Side-by-side metrics |
+| `News about Reliance` | Tool → `search_news` | Recent headlines |
+| `analyse RELIANCE.NS` | Prompt → `stock_analysis_prompt` + 2 tools | 8-section report |
+| `portfolio` | Prompt → `portfolio_review_prompt` + Resource | Portfolio score |
+| `What does P/E mean?` | Resource (glossary in context) | LLM answers accurately |
 
-### MCP Inspector
+### Option 2 — MCP Inspector (Developer View)
 
 ```bash
 npx @modelcontextprotocol/inspector python server/finsight_server.py
-# Open http://localhost:5173 in browser
+# Open http://localhost:5173
 ```
 
-### Run Tests
+### Option 3 — Run Tests
 
 ```bash
 python tests/test_tools.py
@@ -614,46 +620,56 @@ python tests/test_tools.py
 
 ### Dual-Path Tool Routing
 
-The most important engineering decision. Local LLMs sometimes generate wrong argument names (e.g., `{"param": "TCS.NS"}` instead of `{"ticker": "TCS.NS"}`). I solved this with two layers:
+The most important engineering decision in this project. Local LLMs (`llama3.2`) sometimes generate wrong argument names — e.g., `{"param": "TCS.NS"}` instead of `{"ticker": "TCS.NS"}`. I solved it with two layers of defence:
 
-```python
-# FAST PATH — keyword detection, no LLM needed
-direct = detect_tool_from_user_input(user_input)
-if direct:
-    result = await session.call_tool(direct["name"], direct["arguments"])
+```mermaid
+flowchart TD
+    A["User Input"] --> B{Keyword\nRouter}
 
-# SLOW PATH — LLM decides, with auto-fix for wrong arg names
-else:
-    llm_response = await call_ollama(messages)
-    tool_call = extract_tool_call(llm_response)  # also remaps wrong keys
-    result = await session.call_tool(...)
+    B -->|price / compare / news\nkeywords detected| C["FAST PATH\nDirect tool call\nNo LLM needed\nCorrect args guaranteed"]
+
+    B -->|Complex / ambiguous\nquery| D["SLOW PATH\nOllama generates\ntool call JSON"]
+
+    D --> E{Arg names\ncorrect?}
+
+    E -->|Yes| F["Call MCP tool\ndirectly"]
+    E -->|No — e.g. param\ninstead of ticker| G["Auto-fixer remaps:\nparam → ticker\nsymbol → ticker\nstock → ticker"]
+
+    G --> F
+    C --> F
+
+    F --> H["Tool executes\non server"]
+
+    style C fill:#1a472a,color:#fff
+    style G fill:#7b2d00,color:#fff
+    style F fill:#0f3460,color:#fff
 ```
 
-The `extract_tool_call()` function auto-remaps common LLM mistakes:
 ```python
-# If LLM sends {"param": "TCS.NS"}, remap to {"ticker": "TCS.NS"}
+# Auto-fixer in extract_tool_call()
 wrong_keys = {"param", "symbol", "stock", "ticker_symbol", "stock_ticker"}
 for wrong in wrong_keys:
     if wrong in args and "ticker" not in args:
-        args["ticker"] = args.pop(wrong)
+        args["ticker"] = args.pop(wrong)   # remap silently
 ```
 
 ### Context Window Management
 
-Multi-turn conversations exceed the LLM's context limit. Solution: always preserve system prompts, trim old messages.
-
 ```python
+# Always keep system prompts + last 20 messages
 if len(messages) > 22:
-    messages = messages[:2] + messages[-20:]   # keep 2 system prompts + last 20
+    messages = messages[:2] + messages[-20:]
 ```
 
-### Portfolio Resource Injection
-
-The portfolio is loaded once at startup and stays in context for the full session:
+### Portfolio Resource Injection at Startup
 
 ```python
+# Loaded ONCE — stays in LLM context for entire session
 portfolio = await session.read_resource("file://portfolio_template")
-messages.append({"role": "system", "content": f"USER PORTFOLIO:\n{portfolio}"})
+messages.append({
+    "role": "system",
+    "content": f"USER PORTFOLIO:\n{portfolio_text}"
+})
 # LLM now knows all 7 holdings throughout the conversation
 ```
 
@@ -664,73 +680,85 @@ messages.append({"role": "system", "content": f"USER PORTFOLIO:\n{portfolio}"})
 ### All Features Verified Working
 
 | Feature | MCP Primitive | Status | Actual Output |
-|---|---|---|---|
+|---------|--------------|--------|--------------|
 | Live stock price | Tool | ✅ | TCS ₹2,410.50 (−1.31%) |
-| Stock comparison | Tool | ✅ | TCS vs Infosys vs Wipro table |
-| Fundamentals analysis | Tool | ✅ | P/E 22.47, ROE 0.6%, 52W range |
-| News search | Tool | ✅ | Recent headlines with sources |
-| NSE symbol lookup | Resource | ✅ | 50 companies loaded in context |
-| Finance glossary | Resource | ✅ | LLM explains terms correctly |
-| Portfolio context | Resource | ✅ | 7 holdings loaded at startup |
-| Deep analysis report | Prompt | ✅ | 8-section Reliance report |
-| Portfolio review | Prompt | ✅ | Score + buy/hold/sell table |
-| MCP Inspector | All 3 | ✅ | All primitives browsable |
+| Stock comparison | Tool | ✅ | TCS vs Infosys vs Wipro ranked table |
+| Fundamentals analysis | Tool | ✅ | P/E 22.47, ROE 0.6%, D/E 35.65 |
+| Financial news | Tool | ✅ | Recent headlines with source + date |
+| NSE symbol context | Resource | ✅ | 50 companies loaded at startup |
+| Finance glossary | Resource | ✅ | LLM explains terms from loaded context |
+| Portfolio context | Resource | ✅ | 7 holdings injected as system memory |
+| Deep analysis report | Prompt + 2 Tools | ✅ | 8-section Reliance report |
+| Portfolio review | Prompt + Resource | ✅ | Scored review with recommendations |
+| MCP Inspector | All 3 primitives | ✅ | All browsable and testable |
 
-### Reliance Industries Report — Actual Output Summary
+### Reliance Industries — Actual Analysis Output
 
-The `analyse RELIANCE.NS` command produced a complete report including:
-- **Price:** ₹1,380.70 (+0.25%), trading in narrow range
-- **Valuation:** P/E 22.47 (above sector avg 20.12 — slightly overvalued)
-- **Financial health:** ROE 0.6% below 15% ideal, D/E 35.65 (high leverage)
-- **Technicals:** Bullish — above both 50 DMA (₹1,420) and 200 DMA (₹1,448)
-- **News catalysts:** $300B US refinery announcement, Venezuela oil strategy
-- **Verdict:** Overvalued on P/E and P/B basis vs sector peers
+```
+Price    : ₹1,380.70 (+0.25%)
+P/E      : 22.47  vs sector avg 20.12  → slightly overvalued
+ROE      : 0.6%   (below 15% ideal)    → concern flagged
+D/E      : 35.65                        → high leverage
+52W Range: ₹1,142 – ₹1,611
+Trend    : Bullish (above 50 DMA ₹1,420 and 200 DMA ₹1,448)
+News     : $300B US refinery · Venezuela oil strategy
+Verdict  : Overvalued on P/E and P/B vs sector peers
+```
 
 ---
 
 ## 📚 What I Learned
 
-### 1. MCP Transport Layer
-The stdio transport works by spawning the server as a subprocess and using stdin/stdout pipes for JSON-RPC 2.0 messages. Server errors go to stderr (visible in terminal), MCP messages go to stdout. Understanding this separation was key to debugging.
+### 1. stdio Transport Is Simpler Than It Sounds
+The stdio transport spawns the server as a child process and uses stdin/stdout pipes for JSON-RPC 2.0 messages. Server `print()` goes to stderr — MCP messages go to stdout. Keeping these separate was the key to debugging without breaking the protocol.
 
-### 2. Tool Schema Quality Determines LLM Behaviour
-The JSON Schema is what the LLM reads to understand how to call a tool. Vague schemas lead to wrong argument names. I learned to always include concrete examples in the description — `"e.g. TCS.NS, RELIANCE.NS"` — not just abstract descriptions.
+### 2. Tool Schema Quality Directly Controls LLM Behaviour
+The JSON Schema is exactly what the LLM reads to understand how to call a tool. Vague schemas → wrong argument names. I learned to always put a concrete example in the `description` field (`"e.g. TCS.NS, RELIANCE.NS"`) — not just abstract descriptions.
 
-### 3. Resources vs Tools — The Right Choice
-Resources = context that doesn't change per request (glossary, symbol lists, user profile). Tools = actions with real-time data or side effects. Using a tool to serve a static glossary would add unnecessary latency. Using a resource for live stock prices would return stale data.
+### 3. Resources vs Tools — Choosing Correctly Matters
+- **Resources** = context that doesn't change per request (glossary, symbol lists, user profile)
+- **Tools** = actions that need real-time data or have side effects (live prices, news search)
+- Using a Tool to serve a static glossary wastes a round-trip. Using a Resource for live prices returns stale data.
 
-### 4. Prompt Templates Enable Composable AI Workflows
-Server-side prompts let you define **standardised workflows** once and trigger them from any MCP client. The stock analysis workflow (template + 2 tool calls + LLM generation) can be triggered from Claude Desktop, a custom client, or any future MCP client — without rewriting the workflow logic.
+### 4. MCP Prompts Enable Composable AI Workflows
+Server-side Prompts encode **standardised workflows** that any MCP client can trigger. The stock analysis workflow (template → 2 tool calls → LLM report) can be triggered from Claude Desktop, a VS Code extension, or a mobile app — without rewriting the workflow logic in each client.
 
 ### 5. Local LLMs Require Defensive Engineering
-`llama3.2` is excellent on M1 but occasionally generates wrong argument names. I implemented both a keyword router and an auto-fixer — teaching me that production agentic systems need **output validation and fallback strategies**, especially with smaller local models.
+`llama3.2` on M1 is fast and capable, but occasionally outputs wrong argument names. I built both a keyword router (avoid the LLM entirely for simple queries) and an argument auto-fixer (correct wrong names silently). Production agentic systems need **validation layers**, not just prompting.
 
-### 6. The Server-Client Separation is the Core Value
-The MCP server doesn't know Ollama exists. The client doesn't know yfinance exists. They communicate only through the MCP protocol. This means: swap Ollama for Claude API → zero server changes. Swap yfinance for Bloomberg → zero client changes. This modular separation is what makes MCP powerful for production systems.
+### 6. The Server-Client Separation Is the Core Value
+The MCP server has zero knowledge of Ollama. The client has zero knowledge of yfinance. They communicate only through the MCP protocol. Practical consequence:
+- Swap Ollama → Claude API? Zero server changes.
+- Swap yfinance → Bloomberg? Zero client changes.
+- Add a VS Code extension as a second client? Zero server changes.
+
+This modularity is what makes MCP a genuine architectural standard, not just a library.
 
 ---
 
 ## 🔮 Possible Extensions
 
-- **Web UI** — Replace terminal with Streamlit/FastAPI interface
-- **Historical charts** — Add `get_price_history` tool with matplotlib
-- **BSE support** — Add BSE-listed stocks alongside NSE
-- **Portfolio P&L** — Track actual buy prices and show real gain/loss
-- **SSE transport** — Deploy server remotely (not just local stdio)
-- **Claude API** — Replace Ollama with Anthropic Claude for production
-- **Multi-server client** — Connect to multiple MCP servers simultaneously
+| Extension | Effort | What it adds |
+|-----------|--------|-------------|
+| Streamlit Web UI | Medium | Replace terminal with browser interface |
+| Historical price charts | Low | `get_price_history` tool + matplotlib |
+| BSE support | Low | Add BSE-listed tickers alongside NSE |
+| Portfolio P&L tracker | Medium | Track buy prices, show real gain/loss |
+| SSE transport | Medium | Deploy server remotely, not just local |
+| Claude API | Low | Swap Ollama for Anthropic Claude in production |
+| Multi-server client | High | Connect to stocks + news + macro MCP servers simultaneously |
 
 ---
 
 ## ⚠️ Disclaimer
 
-For educational purposes only. Nothing produced by this application constitutes financial advice. Consult a SEBI-registered investment advisor before any investment decisions.
+For **educational purposes only**. Nothing produced by this application constitutes financial advice. Always consult a SEBI-registered investment advisor before making investment decisions.
 
 ---
 
 ## 📄 License
 
-MIT License — free to use, modify, and distribute.
+MIT License — free to use, modify, and distribute with attribution.
 
 ---
 
@@ -738,8 +766,10 @@ MIT License — free to use, modify, and distribute.
 
 **Built to demonstrate complete Model Context Protocol (MCP) implementation skills.**
 
-*Completed after the Anthropic Academy — Introduction to MCP course*
+*Anthropic Academy — Introduction to MCP course project*
 
-If this helped you understand MCP, give it a ⭐
+⭐ Star this repo if it helped you understand MCP
+
+**[github.com/Akash-47-tank/finsight-mcp](https://github.com/Akash-47-tank/finsight-mcp)**
 
 </div>
